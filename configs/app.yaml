@@ -1,0 +1,9 @@
+logging:
+  level: -4 # -4: debug, 0: info, 4: warn, 8: error
+web:
+  host:
+  port: 8080
+  path_prefix: /api/v1
+db:
+  driver_name: postgres
+  connection_string: postgres://postgres:postgres@localhost:5432/persons?sslmode=disable
