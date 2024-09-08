@@ -27,6 +27,11 @@ jobs:
       - name: Build app
         run: go build -v ./cmd/app/main.go
 
+      - name: Lint app
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
