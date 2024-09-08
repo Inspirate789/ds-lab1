@@ -1,0 +1,5 @@
+.github
+postgres
+.gitignore
+person-service.yaml
+*.md
