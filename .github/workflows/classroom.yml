@@ -53,18 +53,26 @@ jobs:
           tags: inspirate789/rsoi-lab1:latest
           build-args: |
             PIPELINE_ID=${{ github.run_id }}
+            
+      - name: Prepare app config on production VM
+        shell: bash
+        env:
+          PROD_CONFIG: ${{secrets.PROD_CONFIG}}
+        run: 'echo "$PROD_CONFIG" > ~/app.yaml'
 
       - name: Deploy to production VM
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          PROD_PORT: ${{secrets.PROD_PORT}}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.PROD_PRIVATE_KEY }}
           passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
           script: >-
-            whoami && 
-            whoami && 
-            whoami
+            docker pull inspirate789/rsoi-lab1:latest &&
+            (docker stop app || true) &&
+            docker run --name app -v ~/app.yaml:/app.yaml -p $PROD_CONFIG:8080 -d --rm inspirate789/rsoi-lab1:latest
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
