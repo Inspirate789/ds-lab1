@@ -54,6 +54,18 @@ jobs:
           build-args: |
             PIPELINE_ID=${{ github.run_id }}
 
+      - name: Deploy to production VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
+          script: >-
+            whoami && 
+            whoami && 
+            whoami
+
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
