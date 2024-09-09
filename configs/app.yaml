@@ -6,4 +6,4 @@ web:
   path_prefix: /api/v1
 db:
   driver_name: postgres
-  connection_string: postgres://postgres:postgres@localhost:5432/persons?sslmode=disable
+  connection_string: postgres://program:test@localhost:5432/persons?sslmode=disable
