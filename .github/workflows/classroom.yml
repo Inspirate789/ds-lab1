@@ -57,12 +57,11 @@ jobs:
       - name: Prepare app config on production VM
         shell: bash
         run: >-
-          echo "${{secrets.PROD_CONFIG}}" > ~/app.yaml
+          touch /home/${{ secrets.PROD_USERNAME }}/app.yaml &&
+          echo "${{secrets.PROD_CONFIG}}" > /home/${{ secrets.PROD_USERNAME }}/app.yaml
 
       - name: Deploy to production VM
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          PROD_PORT: ${{secrets.PROD_PORT}}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
@@ -70,8 +69,8 @@ jobs:
           passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
           script: >-
             docker pull inspirate789/rsoi-lab1:latest &&
-            (docker stop app || true) &&
-            docker run --name app -v ~/app.yaml:/app.yaml -p ${{ secrets.PROD_PORT }}:8080 -d --rm inspirate789/rsoi-lab1:latest
+            (docker stop app && docker rm app || true) &&
+            docker run --name app -v ~/app.yaml:/app.yaml -p ${{ secrets.PROD_PORT }}:8080 -d inspirate789/rsoi-lab1:latest
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
