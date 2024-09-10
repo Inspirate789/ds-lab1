@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/Inspirate789/ds-lab1/internal/models"
-	"github.com/Inspirate789/ds-lab1/internal/user/usecase"
+	"github.com/Inspirate789/ds-lab1/internal/person/usecase"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"go.uber.org/multierr"

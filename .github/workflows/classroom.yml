@@ -33,6 +33,34 @@ jobs:
         with:
           version: v1.60
 
+      - name: Run unit tests for business logic
+        run: ALLURE_OUTPUT_PATH=../../../ go test -v ./internal/person/usecase
+
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          gh_pages: gh-pages
+          allure_history: allure-history
+          allure_results: allure-results
+          keep_reports: 50
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
       - name: Set up QEMU for Docker build
         uses: docker/setup-qemu-action@v3
 
@@ -52,7 +80,7 @@ jobs:
           push: true
           tags: inspirate789/rsoi-lab1:latest
           build-args: |
-            PIPELINE_ID=${{ github.run_id }}
+            PIPELINE_ID=${{ github.run_number }}
             
       - name: Prepare app config on production VM
         uses: appleboy/ssh-action@v1.0.3

@@ -1,6 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Node template
 # Logs
+test-reports
+allure-results
 logs
 *.log
 npm-debug.log*

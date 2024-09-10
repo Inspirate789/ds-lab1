@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"github.com/Inspirate789/ds-lab1/internal/user/delivery"
+	"github.com/Inspirate789/ds-lab1/internal/person/delivery"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"

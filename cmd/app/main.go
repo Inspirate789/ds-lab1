@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/Inspirate789/ds-lab1/internal/person/repository"
+	"github.com/Inspirate789/ds-lab1/internal/person/usecase"
 	"github.com/Inspirate789/ds-lab1/internal/pkg/app"
-	"github.com/Inspirate789/ds-lab1/internal/user/repository"
-	"github.com/Inspirate789/ds-lab1/internal/user/usecase"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/spf13/pflag"
@@ -22,7 +22,7 @@ type WebApp interface {
 }
 
 func startApp(webApp WebApp, config app.Config, logger *slog.Logger) {
-	logger.Info(fmt.Sprintf("web app starts at %s with configuration: %+v", config.Web.Host+":"+config.Web.Port, config))
+	logger.Debug(fmt.Sprintf("web app starts at %s with configuration: %+v", config.Web.Host+":"+config.Web.Port, config))
 
 	go func() {
 		err := webApp.Start()

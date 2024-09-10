@@ -2,7 +2,7 @@ package delivery
 
 import (
 	"github.com/Inspirate789/ds-lab1/internal/models"
-	"github.com/Inspirate789/ds-lab1/internal/user/delivery/errors"
+	"github.com/Inspirate789/ds-lab1/internal/person/delivery/errors"
 	"github.com/gofiber/fiber/v2"
 	"log/slog"
 	"math"

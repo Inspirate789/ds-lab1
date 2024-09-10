@@ -1,5 +1,5 @@
 .github
-postgres
 .gitignore
+test-reports
 person-service.yaml
 *.md
