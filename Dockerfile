@@ -22,6 +22,7 @@ LABEL version="$PIPELINE_ID"
 # Copy the binary
 COPY --from=build /app /app
 # Create environment
+COPY migrations /migrations
 COPY configs/app.yaml /
 # Run the binary
 ENTRYPOINT ["/app", "--config=/app.yaml"]

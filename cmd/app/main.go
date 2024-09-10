@@ -6,6 +6,9 @@ import (
 	"github.com/Inspirate789/ds-lab1/internal/person/repository"
 	"github.com/Inspirate789/ds-lab1/internal/person/usecase"
 	"github.com/Inspirate789/ds-lab1/internal/pkg/app"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/spf13/pflag"
@@ -51,8 +54,9 @@ func shutdownApp(webApp WebApp, logger *slog.Logger) {
 }
 
 func main() {
-	var configPath string
+	var configPath, migrationsPath string
 	pflag.StringVarP(&configPath, "config", "c", "configs/app.yaml", "Config file path")
+	pflag.StringVarP(&migrationsPath, "migrations", "", "migrations", "Migrations directory path")
 	pflag.Parse()
 
 	config, err := app.ReadLocalConfig(configPath)
@@ -61,6 +65,16 @@ func main() {
 	}
 
 	db, err := sqlx.Connect(config.DB.DriverName, config.DB.ConnectionString)
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := migrate.New("file://"+migrationsPath, config.DB.ConnectionString)
+	if err != nil {
+		panic(err)
+	}
+
+	err = m.Up()
 	if err != nil {
 		panic(err)
 	}
