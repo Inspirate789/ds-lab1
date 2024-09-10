@@ -1,17 +1,18 @@
 package usecase
 
 import (
+	"context"
 	"github.com/Inspirate789/ds-lab1/internal/models"
 	"log/slog"
 )
 
-type Repository interface { // TODO: Перейти на указатели
-	HealthCheck() error
-	GetPersons(offset, limit int64) ([]models.Person, error)
-	CreatePerson(person models.PersonProperties) (models.Person, error)
-	GetPerson(personID int) (models.Person, bool, error)
-	UpdatePerson(person models.Person) (models.Person, bool, error)
-	DeletePerson(personID int) (bool, error)
+type Repository interface {
+	HealthCheck(ctx context.Context) error
+	GetPersons(ctx context.Context, offset, limit int64) ([]models.Person, error)
+	CreatePerson(ctx context.Context, person models.PersonProperties) (models.Person, error)
+	GetPerson(ctx context.Context, personID int) (models.Person, bool, error)
+	UpdatePerson(ctx context.Context, person models.Person) (models.Person, bool, error)
+	DeletePerson(ctx context.Context, personID int) (bool, error)
 }
 
 type UseCase struct {
@@ -23,26 +24,26 @@ func New(repo Repository, logger *slog.Logger) *UseCase {
 	return &UseCase{repo: repo, logger: logger}
 }
 
-func (u *UseCase) HealthCheck() error {
-	return u.repo.HealthCheck()
+func (u *UseCase) HealthCheck(ctx context.Context) error {
+	return u.repo.HealthCheck(ctx)
 }
 
-func (u *UseCase) GetPersons(offset, limit int64) ([]models.Person, error) {
-	return u.repo.GetPersons(offset, limit)
+func (u *UseCase) GetPersons(ctx context.Context, offset, limit int64) ([]models.Person, error) {
+	return u.repo.GetPersons(ctx, offset, limit)
 }
 
-func (u *UseCase) CreatePerson(person models.PersonProperties) (models.Person, error) {
-	return u.repo.CreatePerson(person)
+func (u *UseCase) CreatePerson(ctx context.Context, person models.PersonProperties) (models.Person, error) {
+	return u.repo.CreatePerson(ctx, person)
 }
 
-func (u *UseCase) GetPerson(personID int) (models.Person, bool, error) {
-	return u.repo.GetPerson(personID)
+func (u *UseCase) GetPerson(ctx context.Context, personID int) (models.Person, bool, error) {
+	return u.repo.GetPerson(ctx, personID)
 }
 
-func (u *UseCase) UpdatePerson(person models.Person) (models.Person, bool, error) {
-	return u.repo.UpdatePerson(person)
+func (u *UseCase) UpdatePerson(ctx context.Context, person models.Person) (models.Person, bool, error) {
+	return u.repo.UpdatePerson(ctx, person)
 }
 
-func (u *UseCase) DeletePerson(personID int) (bool, error) {
-	return u.repo.DeletePerson(personID)
+func (u *UseCase) DeletePerson(ctx context.Context, personID int) (bool, error) {
+	return u.repo.DeletePerson(ctx, personID)
 }

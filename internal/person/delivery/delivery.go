@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"github.com/Inspirate789/ds-lab1/internal/models"
 	"github.com/Inspirate789/ds-lab1/internal/person/delivery/errors"
 	"github.com/gofiber/fiber/v2"
@@ -9,13 +10,13 @@ import (
 	"strconv"
 )
 
-type UseCase interface { // TODO: add context
-	HealthCheck() error
-	GetPersons(offset, limit int64) ([]models.Person, error)
-	CreatePerson(person models.PersonProperties) (models.Person, error)
-	GetPerson(personID int) (models.Person, bool, error)
-	UpdatePerson(person models.Person) (models.Person, bool, error)
-	DeletePerson(personID int) (bool, error)
+type UseCase interface {
+	HealthCheck(ctx context.Context) error
+	GetPersons(ctx context.Context, offset, limit int64) ([]models.Person, error)
+	CreatePerson(ctx context.Context, person models.PersonProperties) (models.Person, error)
+	GetPerson(ctx context.Context, personID int) (models.Person, bool, error)
+	UpdatePerson(ctx context.Context, person models.Person) (models.Person, bool, error)
+	DeletePerson(ctx context.Context, personID int) (bool, error)
 }
 
 type delivery struct {
@@ -50,7 +51,7 @@ func (d *delivery) GetPersons(ctx *fiber.Ctx) error {
 		limit = math.MaxInt64
 	}
 
-	persons, err := d.useCase.GetPersons(offset, limit)
+	persons, err := d.useCase.GetPersons(ctx.UserContext(), offset, limit)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (d *delivery) PostPerson(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(personErr.Map())
 	}
 
-	person, err := d.useCase.CreatePerson(dto.ToProperties())
+	person, err := d.useCase.CreatePerson(ctx.UserContext(), dto.ToProperties())
 	if err != nil {
 		return err
 	}
@@ -89,7 +90,7 @@ func (d *delivery) GetPerson(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(errors.ErrInvalidID.Map())
 	}
 
-	person, found, err := d.useCase.GetPerson(personID)
+	person, found, err := d.useCase.GetPerson(ctx.UserContext(), personID)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (d *delivery) PatchPerson(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(personErr.Map())
 	}
 
-	person, found, err := d.useCase.UpdatePerson(dto.ToPerson(personID))
+	person, found, err := d.useCase.UpdatePerson(ctx.UserContext(), dto.ToPerson(personID))
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ func (d *delivery) DeletePerson(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(errors.ErrInvalidID.Map())
 	}
 
-	found, err := d.useCase.DeletePerson(personID)
+	found, err := d.useCase.DeletePerson(ctx.UserContext(), personID)
 	if err != nil {
 		return err
 	}

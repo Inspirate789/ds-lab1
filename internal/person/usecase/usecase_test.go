@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"github.com/Inspirate789/ds-lab1/internal/models"
 	"github.com/Inspirate789/ds-lab1/internal/person/usecase"
 	"github.com/ozontech/allure-go/pkg/allure"
@@ -26,7 +27,7 @@ func (s *UseCaseSuite) TestHealthCheck(t provider.T) {
 	repo.On("HealthCheck").Return(nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	err := useCase.HealthCheck()
+	err := useCase.HealthCheck(context.Background())
 	// assert
 	t.Require().NoError(err)
 	repo.AssertExpectations(t)
@@ -64,7 +65,7 @@ func (s *UseCaseSuite) TestGetPersons(t provider.T) {
 	repo.On("GetPersons", offset, limit).Return(persons[offset:][:limit], nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	res, err := useCase.GetPersons(offset, limit)
+	res, err := useCase.GetPersons(context.Background(), offset, limit)
 	// assert
 	t.Require().NoError(err)
 	t.Assert().Len(res, int(limit))
@@ -85,7 +86,7 @@ func (s *UseCaseSuite) TestCreatePerson(t provider.T) {
 	repo.On("CreatePerson", person.PersonProperties).Return(person, nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	res, err := useCase.CreatePerson(person.PersonProperties)
+	res, err := useCase.CreatePerson(context.Background(), person.PersonProperties)
 	// assert
 	t.Require().NoError(err)
 	t.Require().Equal(person, res)
@@ -105,7 +106,7 @@ func (s *UseCaseSuite) TestGetPerson(t provider.T) {
 	repo.On("GetPerson", person.ID).Return(person, true, nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	res, found, err := useCase.GetPerson(person.ID)
+	res, found, err := useCase.GetPerson(context.Background(), person.ID)
 	// assert
 	t.Require().NoError(err)
 	t.Require().True(found)
@@ -132,7 +133,7 @@ func (s *UseCaseSuite) TestUpdatePerson(t provider.T) {
 	repo.On("UpdatePerson", personOverride).Return(newPerson, true, nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	res, found, err := useCase.UpdatePerson(personOverride)
+	res, found, err := useCase.UpdatePerson(context.Background(), personOverride)
 	// assert
 	t.Require().NoError(err)
 	t.Require().True(found)
@@ -152,7 +153,7 @@ func (s *UseCaseSuite) TestDeletePerson(t provider.T) {
 	repo.On("DeletePerson", personID).Return(true, nil)
 	useCase := usecase.New(repo, logger)
 	// act
-	found, err := useCase.DeletePerson(personID)
+	found, err := useCase.DeletePerson(context.Background(), personID)
 	// assert
 	t.Require().NoError(err)
 	t.Require().True(found)

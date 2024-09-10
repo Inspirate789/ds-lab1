@@ -13,7 +13,7 @@ import (
 )
 
 type HealthChecker interface {
-	HealthCheck() error
+	HealthCheck(ctx context.Context) error
 }
 
 type WebConfig struct {
@@ -38,7 +38,7 @@ func checkLiveness(ctx *fiber.Ctx) error {
 
 func checkReadiness(useCase HealthChecker) func(ctx *fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
-		err := useCase.HealthCheck()
+		err := useCase.HealthCheck(ctx.UserContext())
 		if err != nil {
 			return ctx.Status(fiber.StatusServiceUnavailable).JSON(newFiberError(err.Error()))
 		}

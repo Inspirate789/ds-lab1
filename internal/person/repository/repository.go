@@ -23,14 +23,14 @@ func NewSqlxRepository(db *sqlx.DB, logger *slog.Logger) usecase.Repository {
 	}
 }
 
-func (r *sqlxRepository) HealthCheck() error {
+func (r *sqlxRepository) HealthCheck(_ context.Context) error {
 	return r.db.Ping()
 }
 
-func (r *sqlxRepository) GetPersons(offset, limit int64) ([]models.Person, error) {
+func (r *sqlxRepository) GetPersons(ctx context.Context, offset, limit int64) ([]models.Person, error) {
 	var persons Persons
 
-	err := r.db.Select(&persons, selectPersonsQuery, offset, limit)
+	err := r.db.SelectContext(ctx, &persons, selectPersonsQuery, offset, limit)
 	if errors.Is(err, sql.ErrNoRows) {
 		return make([]models.Person, 0), nil
 	}
@@ -38,7 +38,7 @@ func (r *sqlxRepository) GetPersons(offset, limit int64) ([]models.Person, error
 	return persons.ToModel(), err
 }
 
-func (r *sqlxRepository) CreatePerson(person models.PersonProperties) (models.Person, error) {
+func (r *sqlxRepository) CreatePerson(ctx context.Context, person models.PersonProperties) (models.Person, error) {
 	properties := NewPersonProperties(person)
 
 	namedQuery, args, err := sqlx.Named(insertPersonQuery, &properties)
@@ -48,15 +48,15 @@ func (r *sqlxRepository) CreatePerson(person models.PersonProperties) (models.Pe
 
 	var identifiedPerson Person
 
-	err = r.db.Get(&identifiedPerson, r.db.Rebind(namedQuery), args...)
+	err = r.db.GetContext(ctx, &identifiedPerson, r.db.Rebind(namedQuery), args...)
 
 	return identifiedPerson.ToModel(), err
 }
 
-func (r *sqlxRepository) GetPerson(personID int) (models.Person, bool, error) {
+func (r *sqlxRepository) GetPerson(ctx context.Context, personID int) (models.Person, bool, error) {
 	var identifiedPerson Person
 
-	err := r.db.Get(&identifiedPerson, selectPersonQuery, personID)
+	err := r.db.GetContext(ctx, &identifiedPerson, selectPersonQuery, personID)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.Person{}, false, nil
@@ -94,10 +94,10 @@ func runTx(ctx context.Context, db txRunner, f txFunc) (err error) {
 	return f(tx)
 }
 
-func (r *sqlxRepository) updatePersonTx(tx sqlx.ExtContext, person Person) (Person, error) {
+func (r *sqlxRepository) updatePersonTx(ctx context.Context, tx sqlx.ExtContext, person Person) (Person, error) {
 	var res Person
 
-	err := sqlx.GetContext(context.Background(), tx, &res, selectPersonQuery, person.ID)
+	err := sqlx.GetContext(ctx, tx, &res, selectPersonQuery, person.ID)
 	if err != nil {
 		return Person{}, err
 	}
@@ -109,7 +109,7 @@ func (r *sqlxRepository) updatePersonTx(tx sqlx.ExtContext, person Person) (Pers
 		return Person{}, err
 	}
 
-	err = sqlx.GetContext(context.Background(), tx, &res, r.db.Rebind(namedQuery), args...)
+	err = sqlx.GetContext(ctx, tx, &res, r.db.Rebind(namedQuery), args...)
 	if err != nil {
 		return Person{}, err
 	}
@@ -117,12 +117,12 @@ func (r *sqlxRepository) updatePersonTx(tx sqlx.ExtContext, person Person) (Pers
 	return res, nil
 }
 
-func (r *sqlxRepository) UpdatePerson(person models.Person) (models.Person, bool, error) {
+func (r *sqlxRepository) UpdatePerson(ctx context.Context, person models.Person) (models.Person, bool, error) {
 	var res Person
 	var err error
 
-	err = runTx(context.Background(), r.db, func(tx *sqlx.Tx) error {
-		res, err = r.updatePersonTx(tx, NewPerson(person))
+	err = runTx(ctx, r.db, func(tx *sqlx.Tx) error {
+		res, err = r.updatePersonTx(ctx, tx, NewPerson(person))
 		return err
 	})
 
@@ -137,8 +137,8 @@ func (r *sqlxRepository) UpdatePerson(person models.Person) (models.Person, bool
 	return res.ToModel(), true, nil
 }
 
-func (r *sqlxRepository) DeletePerson(personID int) (bool, error) {
-	_, err := r.db.Exec(deletePersonQuery, personID)
+func (r *sqlxRepository) DeletePerson(ctx context.Context, personID int) (bool, error) {
+	_, err := r.db.ExecContext(ctx, deletePersonQuery, personID)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
