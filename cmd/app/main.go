@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/Inspirate789/ds-lab1/internal/person/repository"
 	"github.com/Inspirate789/ds-lab1/internal/person/usecase"
@@ -75,7 +76,7 @@ func main() {
 	}
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		panic(err)
 	}
 
