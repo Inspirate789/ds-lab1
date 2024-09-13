@@ -45,6 +45,12 @@ jobs:
       - name: Run unit tests for business logic
         run: ALLURE_OUTPUT_PATH=../../../ go test -v ./internal/person/usecase
 
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: allure-results
+
   publish_test_report:
     needs: [test]
     name: Publish test report
@@ -52,6 +58,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download current test reports
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: allure-results
 
       - name: Load test report history
         uses: actions/checkout@v3
