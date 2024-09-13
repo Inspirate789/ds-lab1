@@ -6,9 +6,10 @@ on:
   pull_request:
     branches:
       - master
+
 jobs:
   build:
-    name: Autograding
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,6 +29,14 @@ jobs:
       - name: Build app
         run: go build -v ./cmd/app/main.go
 
+  test:
+    name: Test
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Lint app
         uses: golangci/golangci-lint-action@v6
         with:
@@ -35,6 +44,14 @@ jobs:
 
       - name: Run unit tests for business logic
         run: ALLURE_OUTPUT_PATH=../../../ go test -v ./internal/person/usecase
+
+  publish_test_report:
+    needs: [test]
+    name: Publish test report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Load test report history
         uses: actions/checkout@v3
@@ -61,6 +78,14 @@ jobs:
           publish_branch: gh-pages
           publish_dir: allure-history
 
+  build_image:
+    name: Build Docker image
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up QEMU for Docker build
         uses: docker/setup-qemu-action@v3
 
@@ -81,7 +106,15 @@ jobs:
           tags: inspirate789/rsoi-lab1:latest
           build-args: |
             PIPELINE_ID=${{ github.run_number }}
-            
+
+  deploy:
+    name: Deploy
+    needs: [build_image]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Prepare app config on production VM
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -114,12 +147,21 @@ jobs:
             (docker stop app && docker rm app || true) &&
             docker run --name app -v ~/app.yaml:/app.yaml -p $PROD_PORT:8080 --restart always -d inspirate789/rsoi-lab1:latest
 
+  api_test:
+    needs: [deploy]
+    name: Production API test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Add app URL to Postman environment
         uses: sergeysova/jq-action@v2
         id: version
         with:
           cmd: >-
-            jq '.values[0].value = "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"' < postman/\[inst\]\[heroku\]\ Lab1.postman_environment.json > out.tmp &&
+            jq '.values[0].value = "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}"'
+            < postman/\[inst\]\[heroku\]\ Lab1.postman_environment.json > out.tmp &&
             mv out.tmp postman/\[inst\]\[heroku\]\ Lab1.postman_environment.json
 
       - name: Run API Tests
@@ -130,6 +172,14 @@ jobs:
           # envVar: '[{ "key": "baseUrl", "value": "http://${{ secrets.PROD_HOST }}:${{ secrets.PROD_PORT }}" }]'
           delayRequest: 100
           reporters: '[ "cli" ]'
+
+  autograding:
+    name: Autograding
+    needs: [api_test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Autograding
         uses: education/autograding@v1
